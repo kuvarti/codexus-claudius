@@ -21,12 +21,12 @@ and reasoning effort.
 
 ```
 statusline-work
-[kuvarti@cachyos-server gittest]   main  ▓▓▓▓░░░░ 42% ctx  Opus 4.8 (high)
+[kuvarti@cachyos-server gittest]   main  ▓▓▓▓░░░░ 42% (84K Tokens) ctx  Opus 4.8 (high)
 ```
 
 - `[user@host dir]` — from the bash `PS1` `[\u@\h \W]`
 - git branch with a `` icon and a `*` dirty flag (yellow when dirty, green when clean)
-- context-window usage bar + percentage (green < 50%, yellow 50–79%, red ≥ 80%)
+- context-window usage bar + percentage (green < 50%, yellow 50–79%, red ≥ 80%), with the used token count in parentheses (`total_input_tokens`, compacted to `84K`)
 - model display name and current reasoning effort
 
 **Subagent rows** (`name  Model ·effort  description  tokens`):

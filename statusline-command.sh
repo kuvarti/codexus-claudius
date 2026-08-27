@@ -19,6 +19,8 @@ model=$(printf '%s' "$input" | jq -r '.model.display_name // empty')
 effort=$(printf '%s' "$input" | jq -r '.effort.level // empty')
 session=$(printf '%s' "$input" | jq -r '.session_name // empty')
 ctx=$(printf '%s' "$input" | jq -r '.context_window.used_percentage // empty')
+# tokens currently in context (input-only, matching used_percentage)
+ctok=$(printf '%s' "$input" | jq -r '.context_window.total_input_tokens // empty')
 
 # branch (via git; the JSON has no plain branch field for the main working tree)
 branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -52,7 +54,16 @@ if [ -n "$ctx" ]; then
     if [ $i -lt $filled ]; then bar="${bar}▓"; else bar="${bar}░"; fi
     i=$((i+1))
   done
-  bottom="${bottom}  ${c}${bar} ${pct}%${RESET}${DIM} ctx${RESET}"
+  # compact token count: <1000 as-is, <10k one decimal K, else integer K
+  tok=""
+  if [[ "$ctok" =~ ^[0-9]+$ ]] && [ "$ctok" -gt 0 ]; then
+    if   [ "$ctok" -lt 1000 ];  then tok="${ctok}"
+    elif [ "$ctok" -lt 10000 ]; then tok="$(( ctok / 1000 )).$(( (ctok % 1000) / 100 ))K"
+    else tok="$(( (ctok + 500) / 1000 ))K"; fi
+  fi
+  bottom="${bottom}  ${c}${bar} ${pct}%${RESET}"
+  [ -n "$tok" ] && bottom="${bottom}${DIM} (${tok} Tokens)${RESET}"
+  bottom="${bottom}${DIM} ctx${RESET}"
 fi
 
 [ -n "$model" ]  && bottom="${bottom}  ${BLUE}${model}${RESET}"
