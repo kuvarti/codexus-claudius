@@ -6,5 +6,39 @@
   "subagentStatusLine": {
     "type": "command",
     "command": "bash ~/.claude/subagent-statusline.sh"
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "IN=$(cat); DIR=$(echo \"$IN\" | jq -r '.cwd // \"\"' | xargs -r basename); MSG=$(echo \"$IN\" | jq -r '.message // \"Girdi bekliyor\"'); notify-send \"Claude Code — ${DIR}\" \"$MSG\""
+          },
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit -loglevel quiet ~/.claude/sounds/minecraft-villager-huh-sound-effect.mp3",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "DIR=$(cat | jq -r '.cwd // \"\"' | xargs -r basename); notify-send \"Claude Code — ${DIR}\" 'İş tamamlandı'"
+          },
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit -loglevel quiet ~/.claude/sounds/cartoon-eating-sound-effect.mp3",
+            "async": true
+          }
+        ]
+      }
+    ]
   }
 }

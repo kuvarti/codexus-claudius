@@ -1,6 +1,9 @@
 #!/bin/bash
-# Installs the Claude Code status line scripts into ~/.claude and merges the
-# statusLine / subagentStatusLine settings into ~/.claude/settings.json.
+# Installs the Claude Code status line scripts and notification sounds into
+# ~/.claude and merges the statusLine / subagentStatusLine / hooks settings
+# into ~/.claude/settings.json.
+#
+# Notification sounds require ffplay (from ffmpeg).
 #
 # Usage: ./install.sh
 set -euo pipefail
@@ -18,7 +21,14 @@ cp "${REPO_DIR}/subagent-statusline.sh" "${CLAUDE_DIR}/subagent-statusline.sh"
 chmod +x "${CLAUDE_DIR}/statusline-command.sh" "${CLAUDE_DIR}/subagent-statusline.sh"
 echo "installed scripts -> ${CLAUDE_DIR}/"
 
-# 2. Merge the two keys into settings.json (creating it if absent).
+# 1b. Copy notification sounds (referenced by the Notification/Stop hooks).
+mkdir -p "${CLAUDE_DIR}/sounds"
+cp "${REPO_DIR}/media/"*.mp3 "${CLAUDE_DIR}/sounds/"
+echo "installed sounds -> ${CLAUDE_DIR}/sounds/"
+command -v ffplay >/dev/null || \
+  echo "warning: ffplay not found; notification sounds won't play (install ffmpeg)" >&2
+
+# 2. Merge the keys into settings.json (creating it if absent).
 if [ -f "$SETTINGS" ]; then
   tmp="$(mktemp)"
   jq -s '.[0] * .[1]' "$SETTINGS" "${REPO_DIR}/settings.snippet.json" > "$tmp"
