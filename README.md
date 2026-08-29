@@ -15,6 +15,8 @@ command, all wired up by a single installer.
 | `global-CLAUDE.md`       | System-wide rules. Installs to `~/.claude/CLAUDE.md` (loaded in every session). |
 | `commands/init.md`       | Custom `/init` slash command. Installs into `~/.claude/commands/`. |
 | `install.sh`             | Installs all of the above. Runs from a local clone or via `curl … \| bash`. |
+| `uninstall.sh`           | Safely removes selected components and restores files replaced during installation. |
+| `test-sandbox.sh`        | Opens an isolated temporary environment for testing install and uninstall safely. |
 
 ## Status line
 
@@ -76,6 +78,19 @@ a curated root `CLAUDE.md`, and runs routine setup — a `.claude.local` symlink
 the project's Claude data dir, `git init` if needed, `.gitignore` entries, and a
 `plans/` directory.
 
+## Safe test sandbox
+
+To test the complete install and uninstall flow without touching your real
+`~/.claude` directory:
+
+```bash
+./test-sandbox.sh
+```
+
+The interactive menu can run the installer, inspect generated files, simulate a
+user-modified installed file, and run the uninstaller. Everything is redirected
+to a unique directory under `/tmp` and deleted when the sandbox exits.
+
 ## Install
 
 From a local checkout:
@@ -91,7 +106,39 @@ curl -fsSL https://raw.githubusercontent.com/kuvarti/claudius-sculptus/master/in
 ```
 
 When run this way the script clones the repo into a temporary directory and installs
-from there. Then restart Claude Code (or open a new session). To apply manually
-instead, copy the `*.sh` files into `~/.claude/`, the sounds into `~/.claude/sounds/`,
-`global-CLAUDE.md` to `~/.claude/CLAUDE.md`, `commands/*.md` into `~/.claude/commands/`,
-and merge `settings.snippet.json` into `~/.claude/settings.json`.
+from there. In both modes it interactively asks whether to enhance notifications
+with desktop alerts and sound effects, install the global `CLAUDE.md`, and install
+the custom `/init` command; pressing Enter accepts the default (`yes`). If no
+interactive terminal is available, all three are installed.
+
+The installer records managed files and their checksums in
+`~/.claude/.claudius-sculptus/manifest.json`. If it replaces an existing file, the
+original is backed up alongside the manifest so it can be restored on uninstall.
+Then restart Claude Code (or open a new session).
+
+## Uninstall
+
+From a local checkout:
+
+```bash
+./uninstall.sh
+```
+
+Or straight from GitHub:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/kuvarti/claudius-sculptus/master/uninstall.sh | bash
+```
+
+The uninstaller asks which components to remove and requires a final confirmation.
+It removes only settings that exactly match this project, preserves unrelated hooks,
+and restores files that existed before installation. Files modified after installation
+are left untouched with a warning. For safety, uninstall requires an interactive
+terminal and will not run unattended.
+
+## Manual setup
+
+To apply manually, copy the `*.sh` files into `~/.claude/`, the sounds into
+`~/.claude/sounds/`, `global-CLAUDE.md` to `~/.claude/CLAUDE.md`, `commands/*.md`
+into `~/.claude/commands/`, and merge `settings.snippet.json` into
+`~/.claude/settings.json`.
