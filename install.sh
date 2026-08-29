@@ -5,14 +5,32 @@
 #
 # Notification sounds require ffplay (from ffmpeg).
 #
-# Usage: ./install.sh
+# Usage:
+#   ./install.sh   (from a local checkout)
+#   curl -fsSL https://raw.githubusercontent.com/kuvarti/claudius-sculptus/master/install.sh | bash
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_URL="https://github.com/kuvarti/claudius-sculptus.git"
 CLAUDE_DIR="${HOME}/.claude"
 SETTINGS="${CLAUDE_DIR}/settings.json"
 
 command -v jq >/dev/null || { echo "error: jq is required" >&2; exit 1; }
+
+# Source files: use the local checkout when this script sits next to them,
+# otherwise clone from GitHub so it also works via `curl ... | bash`.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || true)"
+if [ -n "${SCRIPT_DIR:-}" ] && [ -f "${SCRIPT_DIR}/global-CLAUDE.md" ]; then
+  REPO_DIR="$SCRIPT_DIR"
+  echo "using local checkout -> ${REPO_DIR}"
+else
+  command -v git >/dev/null || { echo "error: git is required to bootstrap the install" >&2; exit 1; }
+  REPO_DIR="$(mktemp -d)"
+  trap 'rm -rf "$REPO_DIR"' EXIT
+  echo "cloning ${REPO_URL} ..."
+  git clone --depth 1 "$REPO_URL" "$REPO_DIR" >/dev/null 2>&1 \
+    || { echo "error: git clone failed (is the repo public and pushed?)" >&2; exit 1; }
+fi
+
 mkdir -p "$CLAUDE_DIR"
 
 # 1. Copy the scripts (preserves the raw ANSI escape bytes).
