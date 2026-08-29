@@ -1,7 +1,7 @@
 #!/bin/bash
-# Installs the Claude Code status line scripts and notification sounds into
-# ~/.claude and merges the statusLine / subagentStatusLine / hooks settings
-# into ~/.claude/settings.json.
+# Installs the Claude Code status line scripts, notification sounds, and the
+# system-wide CLAUDE.md into ~/.claude and merges the statusLine /
+# subagentStatusLine / hooks settings into ~/.claude/settings.json.
 #
 # Notification sounds require ffplay (from ffmpeg).
 #
@@ -27,6 +27,10 @@ cp "${REPO_DIR}/media/"*.mp3 "${CLAUDE_DIR}/sounds/"
 echo "installed sounds -> ${CLAUDE_DIR}/sounds/"
 command -v ffplay >/dev/null || \
   echo "warning: ffplay not found; notification sounds won't play (install ffmpeg)" >&2
+
+# 1c. Install the system-wide CLAUDE.md (applies to every session on this machine).
+cp "${REPO_DIR}/global-CLAUDE.md" "${CLAUDE_DIR}/CLAUDE.md"
+echo "installed system-wide CLAUDE.md -> ${CLAUDE_DIR}/CLAUDE.md"
 
 # 2. Merge the keys into settings.json (creating it if absent).
 if [ -f "$SETTINGS" ]; then
