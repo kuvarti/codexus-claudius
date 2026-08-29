@@ -3,7 +3,10 @@
 # The real ~/.claude directory is never used.
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# shellcheck source=tests/sandbox-common.sh
+source "${SCRIPT_DIR}/tests/sandbox-common.sh"
 
 if [ ! -t 0 ]; then
   echo "error: the test sandbox requires an interactive terminal" >&2
@@ -12,29 +15,23 @@ fi
 
 command -v jq >/dev/null || { echo "error: jq is required" >&2; exit 1; }
 
-SANDBOX_DIR="$(mktemp -d /tmp/claudius-sculptus-sandbox.XXXXXX)"
+SANDBOX_PREFIX="claudius-sculptus-claude-sandbox"
+SANDBOX_DIR="$(sandbox_create "$SANDBOX_PREFIX")"
 
 cleanup() {
-  case "$SANDBOX_DIR" in
-    /tmp/claudius-sculptus-sandbox.*)
-      [ ! -d "$SANDBOX_DIR" ] || rm -rf "$SANDBOX_DIR"
-      ;;
-    *)
-      echo "warning: refused to clean unexpected sandbox path: ${SANDBOX_DIR}" >&2
-      ;;
-  esac
+  sandbox_cleanup "$SANDBOX_DIR" "$SANDBOX_PREFIX"
 }
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 run_installer() {
   echo
-  CLAUDIUS_SCULPTUS_TARGET_DIR="$SANDBOX_DIR" "${SCRIPT_DIR}/install.sh"
+  CLAUDIUS_SCULPTUS_CLAUDE_TARGET_DIR="$SANDBOX_DIR" "${SCRIPT_DIR}/install-claude.sh"
 }
 
 run_uninstaller() {
   echo
-  CLAUDIUS_SCULPTUS_TARGET_DIR="$SANDBOX_DIR" "${SCRIPT_DIR}/uninstall.sh"
+  CLAUDIUS_SCULPTUS_CLAUDE_TARGET_DIR="$SANDBOX_DIR" "${SCRIPT_DIR}/uninstall-claude.sh"
 }
 
 inspect_sandbox() {
@@ -43,10 +40,7 @@ inspect_sandbox() {
   if [ -z "$(find "$SANDBOX_DIR" -mindepth 1 -print -quit)" ]; then
     echo "  (empty)"
   else
-    (
-      cd "$SANDBOX_DIR"
-      find . -mindepth 1 -maxdepth 4 -printf '  %P\n' | sort
-    )
+    sandbox_print_tree "$SANDBOX_DIR"
   fi
 
   if [ -f "$SANDBOX_DIR/settings.json" ]; then
