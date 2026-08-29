@@ -32,6 +32,11 @@ command -v ffplay >/dev/null || \
 cp "${REPO_DIR}/global-CLAUDE.md" "${CLAUDE_DIR}/CLAUDE.md"
 echo "installed system-wide CLAUDE.md -> ${CLAUDE_DIR}/CLAUDE.md"
 
+# 1d. Install custom slash commands (e.g. /init).
+mkdir -p "${CLAUDE_DIR}/commands"
+cp "${REPO_DIR}/commands/"*.md "${CLAUDE_DIR}/commands/"
+echo "installed commands -> ${CLAUDE_DIR}/commands/"
+
 # 2. Merge the keys into settings.json (creating it if absent).
 if [ -f "$SETTINGS" ]; then
   tmp="$(mktemp)"
